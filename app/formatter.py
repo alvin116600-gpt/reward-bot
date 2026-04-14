@@ -8,7 +8,7 @@ def format_currency(value: object) -> str:
 
 def format_percent(value: object) -> str:
     number = _to_float(value)
-    return f'{number * 100:.2f}%'
+    return f'{number *100}%'
 
 
 def _to_float(value: object) -> float:
