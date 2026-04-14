@@ -96,23 +96,23 @@ class RewardPenaltySheetService:
         values = [row[0] if row else 0 for row in data]
         padded = values + [0] * (10 - len(values))
         return (
-            '今日獎池已更新\n\n'
-            '直推獎池：\n'
-            f'本月獎池總金額 {format_currency(padded[0])}\n'
-            f'本月可發放總額 {format_currency(padded[1])}\n'
-            f'本日新增獎金 {format_currency(padded[6])}\n'
-            f'本日開放比例 {format_percent(padded[7])}\n\n'
-            '團隊獎池：\n'
-            f'本月獎池總金額 {format_currency(padded[2])}\n'
-            f'本月可發放總額 {format_currency(padded[3])}\n'
-            f'本日新增獎金 {format_currency(padded[8])}\n'
-            f'本日開放比例 {format_percent(padded[9])}'
+            '今日獎池已更新\nCập nhật quỹ thưởng hôm nay\n\n'
+            '直推獎池 | Quỹ thưởng trực tiếp：\n'
+            f'本月獎池總金額 | Tổng quỹ tháng này: {format_currency(padded[0])}\n'
+            f'本月可發放總額 | Tổng số có thể phát tháng này: {format_currency(padded[1])}\n'
+            f'本日新增獎金 | Thưởng tăng thêm hôm nay: {format_currency(padded[6])}\n'
+            f'本日開放比例 | Tỷ lệ mở hôm nay: {format_percent(padded[7])}\n\n'
+            '團隊獎池 | Quỹ thưởng đội nhóm：\n'
+            f'本月獎池總金額 | Tổng quỹ tháng này: {format_currency(padded[2])}\n'
+            f'本月可發放總額 | Tổng số có thể phát tháng này: {format_currency(padded[3])}\n'
+            f'本日新增獎金 | Thưởng tăng thêm hôm nay: {format_currency(padded[8])}\n'
+            f'本日開放比例 | Tỷ lệ mở hôm nay: {format_percent(padded[9])}'
         )
 
     def get_ranking_text(self, limit: int = 10) -> str:
         ws = self._worksheet(self.settings.ranking_sheet_name)
         rows = ws.get(f'A4:D{3+limit}', value_render_option='UNFORMATTED_VALUE')
-        lines = ['🏆 員工排行榜（依實際到手）']
+        lines = ['🏆 員工排行榜（依實際到手）\n🏆 Bảng xếp hạng nhân viên (theo thực nhận)']
         found = False
         for row in rows:
             if len(row) < 4:
@@ -124,7 +124,7 @@ class RewardPenaltySheetService:
             label = str(badge).strip() or f'{int(_n(rank) or 0)}.'
             lines.append(f'{label} {name}：{format_currency(amount)}')
         if not found:
-            lines.append('目前沒有可顯示的排行資料。')
+            lines.append('目前沒有可顯示的排行資料。\nHiện chưa có dữ liệu xếp hạng để hiển thị.')
         return '\n'.join(lines)
 
     def get_bound_employee_name(self, telegram_user_id: int) -> Optional[str]:
@@ -148,29 +148,29 @@ class RewardPenaltySheetService:
     def format_weight_message(self, employee_name: str) -> str:
         record = self.get_employee_record(employee_name)
         if not record:
-            return f'找不到員工：{employee_name}'
+            return f'找不到員工：{employee_name}\nKhông tìm thấy nhân viên: {employee_name}'
         return (
             f'👤 {record.name}\n\n'
-            f'👥 直推人數：{int(record.direct_count)}\n'
-            f'👥 團隊人數：{int(record.team_count)}\n\n'
-            f'⚖️ 直推權重：{int(record.direct_weight)}\n'
-            f'⚖️ 團隊權重：{int(record.team_weight)}\n\n'
-            f'📊 直推比例：{format_percent(record.direct_ratio)}\n'
-            f'📊 團隊比例：{format_percent(record.team_ratio)}'
+            f'👥 直推人數 | Số người trực tiếp：{int(record.direct_count)}\n'
+            f'👥 團隊人數 | Số người đội nhóm：{int(record.team_count)}\n\n'
+            f'⚖️ 直推權重 | Trọng số trực tiếp：{int(record.direct_weight)}\n'
+            f'⚖️ 團隊權重 | Trọng số đội nhóm：{int(record.team_weight)}\n\n'
+            f'📊 直推比例 | Tỷ lệ trực tiếp：{format_percent(record.direct_ratio)}\n'
+            f'📊 團隊比例 | Tỷ lệ đội nhóm：{format_percent(record.team_ratio)}'
         )
 
     def format_bonus_message(self, employee_name: str) -> str:
         record = self.get_employee_record(employee_name)
         if not record:
-            return f'找不到員工：{employee_name}'
+            return f'找不到員工：{employee_name}\nKhông tìm thấy nhân viên: {employee_name}'
         return (
             f'👤 {record.name}\n'
-            f'💰 直推收益：{format_currency(record.direct_income)}\n'
-            f'💰 團隊收益：{format_currency(record.team_income)}\n'
-            f'🚫 違規扣款：{format_currency(record.penalty)}\n'
-            f'⚠️ 違規次數：{int(record.violation_count)}\n'
-            f'💰 實際到手：{format_currency(record.actual_take_home)}\n'
-            f'📌 狀態：{record.status}'
+            f'💰 直推收益 | Thu nhập trực tiếp：{format_currency(record.direct_income)}\n'
+            f'💰 團隊收益 | Thu nhập đội nhóm：{format_currency(record.team_income)}\n'
+            f'🚫 違規扣款 | Khấu trừ vi phạm：{format_currency(record.penalty)}\n'
+            f'⚠️ 違規次數 | Số lần vi phạm：{int(record.violation_count)}\n'
+            f'💰 實際到手 | Thực nhận：{format_currency(record.actual_take_home)}\n'
+            f'📌 狀態 | Trạng thái：{record.status}'
         )
 
 
