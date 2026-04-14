@@ -22,17 +22,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# 按鈕改成中越雙語
 BTN_WEIGHT = '查詢權重 / Tra trọng số'
 BTN_BONUS = '獎金查詢 / Tra thưởng'
 BTN_RANKING = '排行榜 / Bảng xếp hạng'
-BTN_POOL = '今日獎池 / Quỹ hôm nay'
-BTN_POOL_UPDATE = '獎池更新 / Cập nhật quỹ'
-
-LEGACY_BTN_WEIGHT = '查詢權重'
-LEGACY_BTN_BONUS = '獎金查詢'
-LEGACY_BTN_RANKING = '排行榜'
-LEGACY_BTN_POOL = '今日獎池'
-LEGACY_BTN_POOL_UPDATE = '獎池更新'
+BTN_POOL = '今日獎池 / Quỹ thưởng hôm nay'
+BTN_POOL_UPDATE = '獎池更新 / Cập nhật quỹ thưởng'
 
 CALLBACK_WEIGHT = 'weight'
 CALLBACK_BONUS = 'bonus'
@@ -53,16 +48,13 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(employee_callback_handler, pattern=r'^(weight|bonus):'))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_router))
 
-    logger.info('獎懲機器人已啟動 / Bot thưởng phạt đã khởi động')
+    logger.info('獎懲機器人已啟動')
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.effective_message.reply_text(
-        '歡迎使用獎懲機器人\n'
-        'Chào mừng sử dụng bot thưởng phạt\n\n'
-        '請直接點選下方功能按鈕\n'
-        'Vui lòng bấm các nút chức năng bên dưới。',
+        '歡迎使用獎懲機器人\nChào mừng sử dụng bot thưởng phạt\n\n請選擇下方功能按鈕\nVui lòng bấm các nút chức năng bên dưới：',
         reply_markup=main_menu_keyboard(),
     )
 
@@ -72,44 +64,46 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     admin_hint = ''
     if update.effective_user and update.effective_user.id in settings.admin_ids:
         admin_hint = (
-            '\n\n管理員可使用：/pool_update 或直接點選「獎池更新」\n'
-            'Quản trị viên có thể dùng: /pool_update hoặc bấm "Cập nhật quỹ".'
+            '\n\n管理員可使用：/pool_update 或直接輸入「獎池更新」'
+            '\nQuản trị viên có thể dùng: /pool_update hoặc nhập trực tiếp “Cập nhật quỹ thưởng”'
         )
+
     await update.effective_message.reply_text(
-        '功能說明 / Hướng dẫn\n'
-        '1. 查詢權重：查看直推/團隊人數、權重與比例\n'
-        '   Tra trọng số: xem số người trực tiếp/đội nhóm, trọng số và tỷ lệ\n\n'
-        '2. 獎金查詢：查看收益、扣款、實際到手\n'
-        '   Tra thưởng: xem thu nhập, khấu trừ và thực nhận\n\n'
-        '3. 排行榜：查看依實際到手排序\n'
-        '   Bảng xếp hạng: xem xếp hạng theo thực nhận\n\n'
+        '功能說明 / Hướng dẫn chức năng\n\n'
+        '1. 查詢權重：查看員工直推/團隊人數、權重與比例\n'
+        '1. Tra trọng số: xem số người giới thiệu trực tiếp / đội nhóm, trọng số và tỷ lệ\n\n'
+        '2. 獎金查詢：查看直推收益、團隊收益、違規扣款、實際到手\n'
+        '2. Tra thưởng: xem thu nhập trực tiếp, thu nhập đội nhóm, khấu trừ vi phạm và thực nhận\n\n'
+        '3. 排行榜：查看依實際到手排序的員工排名\n'
+        '3. Bảng xếp hạng: xem thứ hạng nhân viên theo thực nhận\n\n'
         '4. 今日獎池：查看最新獎池公告\n'
-        '   Quỹ hôm nay: xem thông báo quỹ mới nhất'
+        '4. Quỹ thưởng hôm nay: xem thông báo quỹ thưởng mới nhất'
         f'{admin_hint}'
     )
 
 
 async def text_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (update.effective_message.text or '').strip()
-    if text in {BTN_WEIGHT, LEGACY_BTN_WEIGHT}:
+
+    # 改成關鍵字判斷，避免雙語按鈕比對失敗
+    if '查詢權重' in text:
         await send_employee_picker(update, context, CALLBACK_WEIGHT)
         return
-    if text in {BTN_BONUS, LEGACY_BTN_BONUS}:
+    if '獎金查詢' in text:
         await send_employee_picker(update, context, CALLBACK_BONUS)
         return
-    if text in {BTN_RANKING, LEGACY_BTN_RANKING}:
+    if '排行榜' in text:
         await ranking_command(update, context)
         return
-    if text in {BTN_POOL, LEGACY_BTN_POOL}:
+    if '今日獎池' in text:
         await send_pool_text(update, context, is_admin_trigger=False)
         return
-    if text in {BTN_POOL_UPDATE, LEGACY_BTN_POOL_UPDATE}:
+    if '獎池更新' in text:
         await send_pool_text(update, context, is_admin_trigger=True)
         return
 
     await update.effective_message.reply_text(
-        '請直接點選下方功能按鈕。\n'
-        'Vui lòng bấm các nút chức năng bên dưới。',
+        '請直接點選下方功能按鈕。\nVui lòng bấm trực tiếp các nút chức năng bên dưới。',
         reply_markup=main_menu_keyboard(),
     )
 
@@ -125,17 +119,14 @@ async def send_employee_picker(update: Update, context: ContextTypes.DEFAULT_TYP
 
     names = service.get_employee_names()
     if not names:
-        await update.effective_message.reply_text(
-            '目前報表中沒有員工名單。\n'
-            'Hiện tại chưa có danh sách nhân viên trong báo cáo。'
-        )
+        await update.effective_message.reply_text('目前報表中沒有員工名單。\nHiện tại trong báo cáo chưa có danh sách nhân viên.')
         return
 
     keyboard = build_employee_keyboard(names, action)
     title = (
-        '請選擇要查詢權重的員工：\nChọn nhân viên cần tra trọng số:'
+        '請選擇要查詢權重的員工：\nVui lòng chọn nhân viên cần tra trọng số:'
         if action == CALLBACK_WEIGHT
-        else '請選擇要查詢獎金的員工：\nChọn nhân viên cần tra thưởng:'
+        else '請選擇要查詢獎金的員工：\nVui lòng chọn nhân viên cần tra thưởng:'
     )
     await update.effective_message.reply_text(title, reply_markup=keyboard)
 
@@ -153,8 +144,7 @@ async def employee_callback_handler(update: Update, context: ContextTypes.DEFAUL
     bound_name = service.get_bound_employee_name(query.from_user.id)
     if bound_name and bound_name != employee_name:
         await query.edit_message_text(
-            f'你目前只可查詢綁定員工：{bound_name}\n'
-            f'Hiện tại bạn chỉ có thể tra nhân viên đã liên kết: {bound_name}'
+            f'你目前只可查詢綁定員工：{bound_name}\nHiện tại bạn chỉ có thể tra cứu nhân viên đã liên kết: {bound_name}'
         )
         return
 
@@ -181,17 +171,13 @@ async def send_pool_text(update: Update, context: ContextTypes.DEFAULT_TYPE, is_
     if is_admin_trigger:
         if user_id not in settings.admin_ids:
             await update.effective_message.reply_text(
-                '只有管理員可以使用「獎池更新」。\n'
-                'Chỉ quản trị viên mới có thể dùng "Cập nhật quỹ"。'
+                '只有管理員可以使用「獎池更新」。\nChỉ quản trị viên mới có thể sử dụng “Cập nhật quỹ thưởng”.'
             )
             return
         await update.effective_message.reply_text(text)
         if settings.announce_chat_id and update.effective_chat and update.effective_chat.id != settings.announce_chat_id:
             await context.bot.send_message(chat_id=settings.announce_chat_id, text=text)
-            await update.effective_message.reply_text(
-                '已同步發送到公告群。\n'
-                'Đã đồng bộ gửi tới nhóm thông báo。'
-            )
+            await update.effective_message.reply_text('已同步發送到公告群。\nĐã đồng bộ gửi đến nhóm thông báo.')
         return
 
     await update.effective_message.reply_text(text)
@@ -208,7 +194,6 @@ def build_employee_keyboard(names: Iterable[str], action: str) -> InlineKeyboard
     if row:
         buttons.append(row)
     return InlineKeyboardMarkup(buttons)
-
 
 
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
